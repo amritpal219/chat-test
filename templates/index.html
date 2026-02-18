@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h2>Chat</h2>
+
+Username:
+<input id="username">
+<br><br>
+
+Send To:
+<input id="to">
+<br><br>
+
+Message:
+<input id="msg">
+
+<button onclick="send()">Send</button>
+
+<h3>Messages:</h3>
+
+<div id="chat"></div>
+
+<script>
+
+function send(){
+
+fetch("/send", {
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+
+sender:username.value,
+receiver:to.value,
+message:msg.value
+
+})
+
+})
+
+}
+
+
+function load(){
+
+fetch("/get?username="+username.value)
+
+.then(res=>res.json())
+
+.then(data=>{
+
+chat.innerHTML=""
+
+data.forEach(m=>{
+
+chat.innerHTML += "<p><b>"+m[0]+":</b> "+m[1]+"</p>"
+
+})
+
+})
+
+}
+
+setInterval(load,1000)
+
+</script>
+
+</body>
+</html>
