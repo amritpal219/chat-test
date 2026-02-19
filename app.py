@@ -4,65 +4,62 @@ import os
 
 app = Flask(__name__)
 
-# Railway MySQL connection using Environment Variables
+# FIXED MySQL connection
 db = mysql.connector.connect(
     host=os.environ.get("mysql.railway.internal"),
     user=os.environ.get("root"),
     password=os.environ.get("lgjZZsrmdBaRqCVSxZYCNIcxkwWesSBQ"),
     database=os.environ.get("railway"),
-    port=int(os.environ.get("3306"))
+    port=int(os.environ.get("3306", 3306))  # default 3306
 )
 
 cursor = db.cursor(dictionary=True)
 
 
-# Home page
 @app.route("/")
 def home():
     return render_template("index.html")
 
 
-# Send message
 @app.route("/send", methods=["POST"])
 def send():
 
     data = request.get_json()
 
-    sender = data.get("sender")
-    receiver = data.get("receiver")
-    message = data.get("message")
+    sql = "INSERT INTO messages (sender, receiver, message) VALUES (%s,%s,%s)"
 
-    sql = "INSERT INTO messages (sender, receiver, message) VALUES (%s, %s, %s)"
-    cursor.execute(sql, (sender, receiver, message))
+    cursor.execute(sql, (
+        data["sender"],
+        data["receiver"],
+        data["message"]
+    ))
+
     db.commit()
 
-    return jsonify({"status": "success"})
+    return jsonify({"status":"ok"})
 
 
-# Get messages
-@app.route("/messages", methods=["GET"])
-def get_messages():
+@app.route("/messages")
+def messages():
 
-    user1 = request.args.get("user1")
-    user2 = request.args.get("user2")
+    user1=request.args.get("user1")
+    user2=request.args.get("user2")
 
-    sql = """
+    cursor.execute("""
+
     SELECT * FROM messages
+
     WHERE (sender=%s AND receiver=%s)
+
     OR (sender=%s AND receiver=%s)
+
     ORDER BY time ASC
-    """
 
-    cursor.execute(sql, (user1, user2, user2, user1))
+    """,(user1,user2,user2,user1))
 
-    messages = cursor.fetchall()
-
-    return jsonify(messages)
+    return jsonify(cursor.fetchall())
 
 
-# Run app
 if __name__ == "__main__":
 
-    port = int(os.environ.get("PORT", 5000))
-
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0",port=5000)
