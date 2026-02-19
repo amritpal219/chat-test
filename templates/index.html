@@ -9,12 +9,15 @@
 <h2>Chat App</h2>
 
 <input id="username" placeholder="Your username">
+
 <br><br>
 
-<input id="receiver" placeholder="Receiver username">
+<input id="receiver" placeholder="Receiver">
+
 <br><br>
 
 <input id="message" placeholder="Message">
+
 <button onclick="send()">Send</button>
 
 <hr>
@@ -36,11 +39,11 @@ headers:{
 
 body:JSON.stringify({
 
-sender:document.getElementById("username").value,
+sender:username.value,
 
-receiver:document.getElementById("receiver").value,
+receiver:receiver.value,
 
-message:document.getElementById("message").value
+message:message.value
 
 })
 
@@ -51,35 +54,27 @@ message:document.getElementById("message").value
 
 function load(){
 
-let user1=document.getElementById("username").value
-
-let user2=document.getElementById("receiver").value
-
-fetch(`/messages?user1=${user1}&user2=${user2}`)
+fetch(`/messages?user1=${username.value}&user2=${receiver.value}`)
 
 .then(res=>res.json())
 
 .then(data=>{
 
-let chat=""
+chat.innerHTML=""
 
 data.forEach(msg=>{
 
-chat+=`<p><b>${msg.sender}:</b> ${msg.message}</p>`
+chat.innerHTML+=`<p><b>${msg.sender}</b>: ${msg.message}</p>`
 
 })
-
-document.getElementById("chat").innerHTML=chat
 
 })
 
 }
 
-
 setInterval(load,1000)
 
 </script>
-
 
 </body>
 </html>
