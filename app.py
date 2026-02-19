@@ -10,7 +10,7 @@ db = mysql.connector.connect(
     user=os.environ.get("root"),
     password=os.environ.get("lgjZZsrmdBaRqCVSxZYCNIcxkwWesSBQ"),
     database=os.environ.get("railway"),
-    port=int(os.environ.get("3306", 3306))  # default 3306
+    port=int(os.environ.get("MYSQLPORT", 3306))  # default 3306
 )
 
 cursor = db.cursor(dictionary=True)
@@ -63,3 +63,4 @@ def messages():
 if __name__ == "__main__":
 
     app.run(host="0.0.0.0",port=5000)
+
