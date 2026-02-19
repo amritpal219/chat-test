@@ -1,18 +1,20 @@
 from flask import Flask, render_template, request, jsonify
 import mysql.connector
+import os
 
 app = Flask(__name__)
 
-# MySQL connection (LOCAL TESTING)
+# Railway MySQL connection using Environment Variables
 db = mysql.connector.connect(
-    host="127.0.0.1",
-    user="root",
-    password="thindworld1d",
-    database="chatdb",
-    port=3306
+    host=os.environ.get("mysql.railway.internal"),
+    user=os.environ.get("root"),
+    password=os.environ.get("lgjZZsrmdBaRqCVSxZYCNIcxkwWesSBQ"),
+    database=os.environ.get("railway"),
+    port=int(os.environ.get("3306"))
 )
 
 cursor = db.cursor(dictionary=True)
+
 
 # Home page
 @app.route("/")
@@ -26,9 +28,9 @@ def send():
 
     data = request.get_json()
 
-    sender = data["sender"]
-    receiver = data["receiver"]
-    message = data["message"]
+    sender = data.get("sender")
+    receiver = data.get("receiver")
+    message = data.get("message")
 
     sql = "INSERT INTO messages (sender, receiver, message) VALUES (%s, %s, %s)"
     cursor.execute(sql, (sender, receiver, message))
@@ -38,8 +40,8 @@ def send():
 
 
 # Get messages
-@app.route("/messages")
-def messages():
+@app.route("/messages", methods=["GET"])
+def get_messages():
 
     user1 = request.args.get("user1")
     user2 = request.args.get("user2")
@@ -53,11 +55,14 @@ def messages():
 
     cursor.execute(sql, (user1, user2, user2, user1))
 
-    result = cursor.fetchall()
+    messages = cursor.fetchall()
 
-    return jsonify(result)
+    return jsonify(messages)
 
 
-# Run
+# Run app
 if __name__ == "__main__":
-    app.run()
+
+    port = int(os.environ.get("PORT", 5000))
+
+    app.run(host="0.0.0.0", port=port)
