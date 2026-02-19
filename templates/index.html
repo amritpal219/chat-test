@@ -1,31 +1,32 @@
 <!DOCTYPE html>
 <html>
+<head>
+<title>Chat App</title>
+</head>
+
 <body>
 
-<h2>Chat</h2>
+<h2>Chat App</h2>
 
-Username:
-<input id="username">
+<input id="username" placeholder="Your username">
 <br><br>
 
-Send To:
-<input id="to">
+<input id="receiver" placeholder="Receiver username">
 <br><br>
 
-Message:
-<input id="msg">
-
+<input id="message" placeholder="Message">
 <button onclick="send()">Send</button>
 
-<h3>Messages:</h3>
+<hr>
 
 <div id="chat"></div>
+
 
 <script>
 
 function send(){
 
-fetch("/send", {
+fetch("/send",{
 
 method:"POST",
 
@@ -35,9 +36,11 @@ headers:{
 
 body:JSON.stringify({
 
-sender:username.value,
-receiver:to.value,
-message:msg.value
+sender:document.getElementById("username").value,
+
+receiver:document.getElementById("receiver").value,
+
+message:document.getElementById("message").value
 
 })
 
@@ -48,27 +51,35 @@ message:msg.value
 
 function load(){
 
-fetch("/get?username="+username.value)
+let user1=document.getElementById("username").value
+
+let user2=document.getElementById("receiver").value
+
+fetch(`/messages?user1=${user1}&user2=${user2}`)
 
 .then(res=>res.json())
 
 .then(data=>{
 
-chat.innerHTML=""
+let chat=""
 
-data.forEach(m=>{
+data.forEach(msg=>{
 
-chat.innerHTML += "<p><b>"+m[0]+":</b> "+m[1]+"</p>"
+chat+=`<p><b>${msg.sender}:</b> ${msg.message}</p>`
 
 })
+
+document.getElementById("chat").innerHTML=chat
 
 })
 
 }
 
+
 setInterval(load,1000)
 
 </script>
+
 
 </body>
 </html>
