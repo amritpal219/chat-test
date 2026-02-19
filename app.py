@@ -1,15 +1,18 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, render_template, request, jsonify
 import mysql.connector
 
 app = Flask(__name__)
 
-# MySQL connection
+# MySQL connection (LOCAL TESTING)
 db = mysql.connector.connect(
-    host="localhost",
+    host="127.0.0.1",
     user="root",
     password="thindworld1d",
-    database="chatdb"
+    database="chatdb",
+    port=3306
 )
+
+cursor = db.cursor(dictionary=True)
 
 # Home page
 @app.route("/")
@@ -21,36 +24,40 @@ def home():
 @app.route("/send", methods=["POST"])
 def send():
 
-    data = request.json
+    data = request.get_json()
 
-    cursor = db.cursor()
+    sender = data["sender"]
+    receiver = data["receiver"]
+    message = data["message"]
 
-    cursor.execute(
-        "INSERT INTO messages (sender, receiver, message) VALUES (%s,%s,%s)",
-        (data["sender"], data["receiver"], data["message"])
-    )
-
+    sql = "INSERT INTO messages (sender, receiver, message) VALUES (%s, %s, %s)"
+    cursor.execute(sql, (sender, receiver, message))
     db.commit()
 
-    return "OK"
+    return jsonify({"status": "success"})
 
 
 # Get messages
-@app.route("/get")
-def get():
+@app.route("/messages")
+def messages():
 
-    username = request.args.get("username")
+    user1 = request.args.get("user1")
+    user2 = request.args.get("user2")
 
-    cursor = db.cursor()
+    sql = """
+    SELECT * FROM messages
+    WHERE (sender=%s AND receiver=%s)
+    OR (sender=%s AND receiver=%s)
+    ORDER BY time ASC
+    """
 
-    cursor.execute(
-        "SELECT sender, message FROM messages WHERE receiver=%s ORDER BY time ASC",
-        (username,)
-    )
+    cursor.execute(sql, (user1, user2, user2, user1))
 
     result = cursor.fetchall()
 
     return jsonify(result)
 
 
-app.run(host="0.0.0.0", port=5000)
+# Run
+if __name__ == "__main__":
+    app.run()
